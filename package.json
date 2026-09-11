@@ -1,0 +1,11 @@
+{
+  "name": "reconstruyehome",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepositorio de ReconstruyeHome.",
+  "scripts": {
+    "dev:database": "docker compose --profile database up -d",
+    "dev": "docker compose --profile apps up --build",
+    "down": "docker compose --profile apps --profile database down"
+  }
+}

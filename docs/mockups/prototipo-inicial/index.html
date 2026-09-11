@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es-CO">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0d554f" />
+    <title>Reconstruye · Mockup móvil</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="phone-shell" aria-label="Mockup navegable de Reconstruye">
+      <header class="topbar">
+        <button class="brand" type="button" data-route="home" aria-label="Ir al inicio">
+          <span class="brand-mark">R</span><span>reconstruye</span>
+        </button>
+      </header>
+
+      <section class="view active" id="home" aria-labelledby="home-title">
+        <div class="hero">
+          <h1 id="home-title">Ayuda a reconstruir, con cuidado.</h1>
+          <p>Encuentra necesidades cercanas o comparte cómo puedes aportar.</p>
+        </div>
+        <div class="notice compact"><span>✦</span><p>La ubicación exacta y los contactos se comparten solo si la persona lo autoriza.</p></div>
+        <div class="wall-header"><p class="eyebrow">MURO DE AYUDA</p><h2>Necesidades activas</h2></div>
+        <button class="text-button filter-trigger" type="button" data-route="filters">Filtrar necesidades</button>
+        <div class="filter-chips" aria-label="Filtros rápidos">
+          <button class="chip selected" type="button" data-filter="all">Todas</button>
+          <button class="chip" type="button" data-filter="materials">Materiales</button>
+          <button class="chip" type="button" data-filter="labor">Mano de obra</button>
+          <button class="chip" type="button" data-filter="home">Enseres</button>
+        </div>
+        <div class="cards" id="request-list"></div>
+      </section>
+
+      <section class="view" id="filters" aria-labelledby="filters-title">
+        <div class="subhead"><button class="back" type="button" data-route="home">←</button><h1 id="filters-title">Filtrar necesidades</h1></div>
+        <p class="helper">Filtra por tipo de ayuda, zona aproximada o urgencia declarada.</p>
+        <form class="filter-form" id="filter-form">
+          <fieldset><legend>Tipo de ayuda</legend>
+            <label class="choice"><input type="checkbox" name="help" value="materials" /> Materiales</label><label class="choice"><input type="checkbox" name="help" value="labor" /> Mano de obra</label><label class="choice"><input type="checkbox" name="help" value="home" /> Enseres esenciales</label><label class="choice"><input type="checkbox" name="help" value="technical" /> Asesoría técnica</label>
+          </fieldset>
+          <fieldset><legend>Zona aproximada</legend>
+            <label class="choice"><input type="radio" name="zone" value="all" checked /> Todas las zonas</label><label class="choice"><input type="radio" name="zone" value="Soacha" /> Soacha</label><label class="choice"><input type="radio" name="zone" value="Mocoa" /> Mocoa</label>
+          </fieldset>
+          <fieldset><legend>Urgencia declarada</legend>
+            <label class="choice"><input type="radio" name="urgency" value="all" checked /> Cualquiera</label><label class="choice"><input type="radio" name="urgency" value="Alta" /> Alta</label><label class="choice"><input type="radio" name="urgency" value="Media" /> Media</label>
+          </fieldset>
+          <button class="primary wide" type="submit">Ver resultados</button>
+        </form>
+      </section>
+
+      <section class="view" id="detail" aria-labelledby="detail-title">
+        <div class="subhead"><button class="back" type="button" data-route="home">←</button><p class="eyebrow">SOLICITUD ACTIVA</p><button class="icon-button" type="button" data-toast="Gracias por reportar. No se enviará nada en este mockup." aria-label="Reportar publicación">⋯</button></div>
+        <article id="detail-content"></article>
+      </section>
+
+      <section class="view" id="publish" aria-labelledby="publish-title">
+        <div class="subhead"><button class="back" type="button" data-route="home">←</button><h1 id="publish-title">Crear publicación</h1></div>
+        <div class="stepper"><span class="step active">1</span><i></i><span class="step">2</span><i></i><span class="step">3</span></div>
+        <form id="publish-form" class="publish-form">
+          <section class="form-step active" data-step="1">
+            <p class="eyebrow">PASO 1 DE 3</p><h2>¿Qué quieres publicar?</h2>
+            <p class="helper">Puedes pedir ayuda para un hogar o contar cómo puedes apoyar.</p>
+            <div class="role-options">
+              <label class="role-card"><input type="radio" name="publicationType" value="need" checked /><span class="role-icon">⌂</span><strong>Necesito ayuda</strong><small>Para reconstrucción o enseres esenciales.</small></label>
+              <label class="role-card"><input type="radio" name="publicationType" value="offer" /><span class="role-icon">♡</span><strong>Quiero aportar</strong><small>Materiales, tiempo, oficio o conocimiento.</small></label>
+            </div>
+            <button class="primary wide next-step" type="button">Continuar</button>
+          </section>
+          <section class="form-step" data-step="2">
+            <p class="eyebrow">PASO 2 DE 3</p><h2>Cuéntanos lo esencial</h2>
+            <label>Categoría<select required><option value="">Selecciona una opción</option><option>Materiales</option><option>Mano de obra</option><option>Enseres esenciales</option><option>Asesoría técnica</option></select></label>
+            <label>Zona aproximada<input required name="zone" placeholder="Ej. Soacha, Cundinamarca" /></label>
+            <label>Descripción<textarea required rows="4" placeholder="Describe qué se necesita, sin datos personales ni dirección exacta."></textarea></label>
+            <label>Urgencia declarada<select><option>Media</option><option>Alta</option><option>Baja</option></select></label>
+            <div class="optional-field">
+              <div class="field-label">Imágenes que permitan verificar la situación o la donación a realizar <span>Opcional</span></div>
+              <label class="upload-control" for="evidence-images"><span>＋</span><strong>Agregar imágenes</strong><small>Puedes seleccionar varias. No incluyas documentos ni datos personales.</small></label>
+              <input id="evidence-images" name="evidence-images" type="file" accept="image/*" multiple />
+              <div class="upload-preview" id="upload-preview" aria-live="polite"></div>
+            </div>
+            <div class="optional-field location-field">
+              <div class="field-label">Ubicación de la necesidad o donación <span>Opcional</span></div>
+              <button class="map-control" id="map-location" type="button"><span class="map-pin">●</span><span><strong>Ubicar en el mapa</strong><small>Marca una zona aproximada; no se mostrará tu dirección exacta.</small></span><b>⌖</b></button>
+              <p class="map-status" id="map-status">Aún no se ha marcado una ubicación.</p>
+              <label class="address-label">O ingresa una dirección <span>Opcional</span><input name="address" placeholder="Ej. Calle 10 # 12-30, Soacha" /></label>
+            </div>
+            <div class="button-row"><button class="secondary prev-step" type="button">Atrás</button><button class="primary next-step" type="button">Continuar</button></div>
+          </section>
+          <section class="form-step" data-step="3">
+            <p class="eyebrow">PASO 3 DE 3</p><h2>Antes de publicar</h2>
+            <div class="notice"><span>♧</span><p>Tu dirección, teléfono y documentos no serán públicos. Tú eliges si deseas compartir un canal de contacto después.</p></div>
+            <label class="consent"><input required type="checkbox" /> <span>Entiendo que Reconstruye no garantiza aportes, personas ni obras. Publicaré información respetuosa y verdadera.</span></label>
+            <label class="consent"><input type="checkbox" /> <span>Quiero recibir contactos por WhatsApp cuando yo los acepte.</span></label>
+            <div class="button-row"><button class="secondary prev-step" type="button">Atrás</button><button class="primary" type="submit">Publicar solicitud</button></div>
+          </section>
+        </form>
+      </section>
+
+      <section class="view" id="safety" aria-labelledby="safety-title">
+        <div class="hero small"><p class="eyebrow">TU SEGURIDAD IMPORTA</p><h1 id="safety-title">Conecta con cuidado.</h1><p>Reconstruye ayuda a abrir conversaciones; no verifica ni garantiza a las personas, los aportes o las obras.</p></div>
+        <div class="safety-list">
+          <article><span>1</span><div><h2>Protege tu información</h2><p>No publiques dirección exacta, documentos, datos bancarios ni fotos que revelen información sensible.</p></div></article>
+          <article><span>2</span><div><h2>Coordina por un canal elegido</h2><p>Cuando decidas contactar, revisa el mensaje y comparte solo lo que te parezca seguro.</p></div></article>
+          <article><span>3</span><div><h2>Reporta situaciones de riesgo</h2><p>Si existe peligro inmediato, usa los canales oficiales de emergencia. La plataforma no reemplaza la atención de emergencia.</p></div></article>
+        </div>
+        <button class="secondary wide" type="button" data-toast="El reporte se abriría aquí, con categoría y detalle opcional.">Reportar una situación</button>
+      </section>
+
+      <nav class="bottom-nav" aria-label="Navegación principal">
+        <button class="nav-item active" type="button" data-route="home"><span>⌂</span>Muro</button>
+        <button class="nav-item create" type="button" data-route="publish"><span>＋</span>Publicar</button>
+        <button class="nav-item" type="button" data-route="safety"><span>♢</span>Seguridad</button>
+      </nav>
+      <div class="toast" role="status" aria-live="polite"></div>
+      <div class="modal-backdrop" id="contact-modal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="contact-title">
+          <button class="modal-close" type="button" aria-label="Cerrar">×</button><p class="eyebrow">ANTES DE CONTINUAR</p><h2 id="contact-title">Vas a abrir WhatsApp</h2>
+          <p>El mensaje inicial no incluye tu teléfono ni dirección. Revisa lo que compartes y no envíes dinero ni datos financieros.</p>
+          <label class="consent"><input id="contact-consent" type="checkbox" /> <span>Entiendo que coordinaré por mi cuenta y acepto abrir el canal externo.</span></label>
+          <button class="primary wide" id="contact-confirm" type="button" disabled>Continuar a WhatsApp</button>
+        </div>
+      </div>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

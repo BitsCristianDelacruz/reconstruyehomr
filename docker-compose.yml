@@ -1,0 +1,63 @@
+name: reconstruyehome
+
+services:
+  front:
+    profiles: ["apps"]
+    build:
+      context: ./apps/front
+      dockerfile: Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-4200}:4200"
+    volumes:
+      - ./apps/front:/workspace
+      - front_node_modules:/workspace/node_modules
+    depends_on:
+      back:
+        condition: service_started
+
+  back:
+    profiles: ["apps"]
+    build:
+      context: ./apps/back
+      dockerfile: Dockerfile
+    environment:
+      FUNCTIONS_WORKER_RUNTIME: node
+      AzureWebJobsStorage: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFE/R4D8A/XkR2E8i6Y+oZ0ZXF+M2X/E8Z5aDnOaS8r/0FQ==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "${BACKEND_PORT:-7071}:80"
+    depends_on:
+      database:
+        condition: service_healthy
+      azurite:
+        condition: service_started
+
+  database:
+    profiles: ["apps", "database"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  azurite:
+    profiles: ["apps"]
+    image: mcr.microsoft.com/azure-storage/azurite:3.33.0
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
+    volumes:
+      - azurite_data:/data
+
+volumes:
+  front_node_modules:
+  postgres_data:
+  azurite_data:

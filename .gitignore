@@ -1,0 +1,21 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+.angular/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+local.settings.json
+
+# Tooling and operating system files
+.vscode/
+.idea/
+*.log
+Thumbs.db
+.DS_Store
+
+# Docker local data
+.docker-data/
