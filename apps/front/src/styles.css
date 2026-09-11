@@ -1,0 +1,30 @@
+:root { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #152c38; background: #f3f6f8; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1080px; margin: 0 auto; padding: 0 32px 48px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 28px 0; border-bottom: 1px solid #d5e0e7; }
+.brand { display: flex; gap: 10px; align-items: center; font-size: 19px; font-weight: 750; letter-spacing: -.5px; }
+.environment { color: #526574; font-size: 14px; }
+section { max-width: 740px; margin: 64px auto 0; }
+.eyebrow { color: #146765; font-weight: 750; letter-spacing: 2px; font-size: 12px; }
+h1 { max-width: 630px; font-size: clamp(32px, 5vw, 48px); line-height: 1.12; letter-spacing: -1.7px; margin: 18px 0; }
+.intro { max-width: 600px; font-size: 17px; line-height: 1.7; color: #526574; }
+.status-panel { background: #fff; border: 1px solid #d5e0e7; border-radius: 16px; padding: 28px; margin-top: 32px; box-shadow: 0 8px 28px #1b405408; }
+.panel-title { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+h2 { font-size: 19px; margin: 0; }
+.badge { font-size: 13px; color: #086247; background: #e6f6ef; padding: 6px 10px; border-radius: 6px; }
+dl { margin: 22px 0; }
+dl > div { display: flex; justify-content: space-between; gap: 20px; padding: 18px 0; border-bottom: 1px solid #e5ebef; }
+dt { font-weight: 650; font-size: 16px; }
+dt span { display: block; color: #62737d; font-weight: 400; font-size: 14px; margin-top: 4px; }
+dd { margin: 0; color: #62737d; font-size: 14px; text-align: right; padding-top: 2px; }
+.ok { color: #087553; font-weight: 650; }
+.database-detail { border-left: 3px solid #14a39b; padding-left: 15px; margin-bottom: 24px; font-size: 14px; color: #526574; }
+.database-detail p { margin: 6px 0; overflow-wrap: anywhere; }
+button { display: flex; justify-content: space-between; align-items: center; gap: 24px; background: #104f54; color: white; border: 0; border-radius: 8px; padding: 14px 18px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+button:hover { background: #0b3d42; }
+button:disabled { cursor: wait; opacity: .65; }
+button:focus-visible { outline: 3px solid #dd901d; outline-offset: 4px; }
+.error { color: #a62e20; background: #fff2ef; border-radius: 6px; padding: 14px; line-height: 1.6; }
+.footnote { font-size: 14px; color: #62737d; margin-top: 20px; line-height: 1.6; }
+@media (max-width: 600px) { main { padding: 0 20px 32px; } header { align-items: flex-start; flex-direction: column; gap: 12px; } section { margin-top: 36px; } .status-panel { padding: 20px; } dl > div { gap: 10px; } button { width: 100%; } }

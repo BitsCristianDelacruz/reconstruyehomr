@@ -4,8 +4,12 @@
   "private": true,
   "description": "Monorepositorio de ReconstruyeHome.",
   "scripts": {
-    "dev:database": "docker compose --profile database up -d",
-    "dev": "docker compose --profile apps up --build",
-    "down": "docker compose --profile apps --profile database down"
+    "dev:database": "docker compose up -d --wait database",
+    "dev": "docker compose up --build --wait --wait-timeout 240",
+    "down": "docker compose down",
+    "logs": "docker compose logs -f front back",
+    "test": "docker compose exec -T back npm test",
+    "test:smoke": "node scripts/smoke-test.mjs",
+    "build": "docker compose exec -T back npm run build && docker compose exec -T front npm run build"
   }
 }

@@ -1,0 +1,24 @@
+{
+  "name": "@reconstruyehome/back",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "dev": "nodemon --legacy-watch --watch src --ext ts --exec tsx src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "migrate": "node dist/migrate.js",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": { "cors": "2.8.5", "express": "5.2.1", "mssql": "12.7.2" },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.0",
+    "@types/mssql": "^9.1.8",
+    "@types/node": "^24.0.0",
+    "nodemon": "^3.1.10",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3"
+  }
+}

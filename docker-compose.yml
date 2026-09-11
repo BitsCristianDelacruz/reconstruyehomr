@@ -2,62 +2,79 @@ name: reconstruyehome
 
 services:
   front:
-    profiles: ["apps"]
     build:
       context: ./apps/front
-      dockerfile: Dockerfile
+      target: development
+    init: true
+    environment:
+      API_PROXY_TARGET: http://back:3000
     ports:
-      - "${FRONTEND_PORT:-4200}:4200"
+      - "127.0.0.1:${FRONTEND_PORT:-4200}:4200"
     volumes:
-      - ./apps/front:/workspace
-      - front_node_modules:/workspace/node_modules
+      - ./apps/front/src:/workspace/src:ro
+      - ./apps/front/public:/workspace/public:ro
+      - ./apps/front/proxy.conf.cjs:/workspace/proxy.conf.cjs:ro
     depends_on:
       back:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4200/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      start_period: 45s
+      retries: 12
 
   back:
-    profiles: ["apps"]
     build:
-      context: ./apps/back
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/back/Dockerfile
+      target: development
+    init: true
     environment:
-      FUNCTIONS_WORKER_RUNTIME: node
-      AzureWebJobsStorage: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFE/R4D8A/XkR2E8i6Y+oZ0ZXF+M2X/E8Z5aDnOaS8r/0FQ==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1
-      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: development
+      PORT: "3000"
+      CORS_ORIGINS: http://localhost:${FRONTEND_PORT:-4200},http://127.0.0.1:${FRONTEND_PORT:-4200}
+      DB_HOST: database
+      DB_PORT: "1433"
+      DB_NAME: ${DATABASE_NAME:-reconstruyehome}
+      DB_USER: sa
+      DB_PASSWORD: ${DATABASE_PASSWORD:?Copia .env.example a .env y configura DATABASE_PASSWORD}
+      DB_ENCRYPT: "true"
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+      DB_INITIALIZE: "true"
+      DB_MIGRATE: "true"
     ports:
-      - "${BACKEND_PORT:-7071}:80"
+      - "127.0.0.1:${BACKEND_PORT:-7071}:3000"
+    volumes:
+      - ./apps/back/src:/workspace/src:ro
+      - ./apps/back/test:/workspace/test:ro
+      - ./infra/database/migrations:/workspace/migrations:ro
     depends_on:
       database:
         condition: service_healthy
-      azurite:
-        condition: service_started
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
 
   database:
-    profiles: ["apps", "database"]
-    image: postgres:16-alpine
+    image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      POSTGRES_DB: ${DATABASE_NAME}
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${DATABASE_PASSWORD:?Copia .env.example a .env y configura DATABASE_PASSWORD}
     ports:
-      - "${DATABASE_PORT:-5432}:5432"
+      - "127.0.0.1:${DATABASE_PORT:-1433}:1433"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infra/database/migrations:/docker-entrypoint-initdb.d:ro
+      - sqlserver_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
-      interval: 5s
+      test: ["CMD-SHELL", "SQLCMDPASSWORD=\"$$MSSQL_SA_PASSWORD\" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -Q 'SELECT 1' -o /dev/null"]
+      interval: 10s
       timeout: 5s
-      retries: 10
-
-  azurite:
-    profiles: ["apps"]
-    image: mcr.microsoft.com/azure-storage/azurite:3.33.0
-    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
-    volumes:
-      - azurite_data:/data
+      start_period: 30s
+      retries: 18
 
 volumes:
-  front_node_modules:
-  postgres_data:
-  azurite_data:
+  sqlserver_data:
