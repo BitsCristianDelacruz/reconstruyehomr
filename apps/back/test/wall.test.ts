@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { Router } from 'express';
+import { PublicationService } from '../src/modules/publications/service.js';
+import { wallRouter } from '../src/modules/publications/wall-router.js';
+import { runtime } from '../src/shared/ports.js';
+import { serve } from './helpers.js';
+import { MemoryPublications,activeCatalogs,needInput } from './memory.js';
+test('offer and wall endpoints: offer requirements, filters, pagination, privacy and hidden deep links',async()=>{
+  const repo=new MemoryPublications();const service=new PublicationService(repo,activeCatalogs,runtime);
+  const owner={id:runtime.id(),roles:['donor']};
+  const need=await service.create('need',owner,needInput,'published');
+  const router=Router();router.use((_req,res,next)=>{res.locals.account=owner;next();},wallRouter(service));
+  const http=await serve(router);
+  const request=(path:string,method='GET',body?:unknown)=>fetch(http.base+path,{method,headers:{'Content-Type':'application/json','X-Requested-With':'ReconstruyeHome'},body:body===undefined?undefined:JSON.stringify(body)});
+  try{
+    assert.equal((await request('/offers','POST',{state:'published'})).status,400);
+    const input={title:'Puertas disponibles',description:'Dos puertas para reutilizar.',category:'home',territory:'mocoa',zone:'Centro',availability:'Fines de semana',conditions:'Recoger con acuerdo previo',safetyAccepted:true,state:'published'};
+    const offerResponse=await request('/offers','POST',input);assert.equal(offerResponse.status,201);const offer=await offerResponse.json();
+    assert.equal((await request('/offers','POST',{...input,urgency:'high'})).status,400);
+    const wall=await (await request('/publications?limit=1')).json();assert.equal(wall.items.length,1);assert.equal(wall.total,2);
+    const filtered=await (await request('/publications?kind=offer&category=home&territory=mocoa')).json();assert.equal(filtered.items[0].id,offer.id);
+    assert.equal((await (await request('/publications?urgency=high')).json()).items[0].id,need.id);
+    assert.equal((await request('/publications?state=hidden')).status,400);
+    assert.equal((await request('/publications?limit=999')).status,400);
+    Object.assign(repo.events.get(need.id)![0]!,{note:'Nota privada de un adaptador',actorId:owner.id});
+    const detail=await (await request('/publications/'+need.id)).json();
+    assert.equal(detail.timeline[0].note,undefined);assert.equal(detail.timeline[0].actorId,undefined);
+    for(const field of ['authorId','email','phone','passwordHash','safetyAccepted','hidden'])assert.equal(detail[field],undefined);
+    assert.equal(detail.trust,'declared');assert.equal(detail.timeline.length,1);assert.equal(detail.isOwner,true);
+    await service.transition(owner,offer.id,1,'close',true);
+    assert.equal((await (await request('/publications?kind=offer')).json()).items.length,0);
+    assert.equal((await (await request('/publications?state=closed')).json()).items.length,1);
+    repo.items.find(p=>p.id===need.id)!.hidden=true;
+    assert.equal((await request('/publications/'+need.id)).status,404);
+    repo.items.find(p=>p.id===offer.id)!.authorActive=false;
+    assert.equal((await request('/publications/'+offer.id)).status,404);
+    assert.equal((await (await request('/publications?state=closed')).json()).total,0);
+  }finally{await http.close();}
+});

@@ -1,5 +1,6 @@
 import { createApp } from './app.js';
 import { connectDatabase, migrate, readStatus } from './database.js';
+import { createApi } from './composition.js';
 
 const port = Number(process.env.PORT ?? 3000);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT inválido');
@@ -9,7 +10,7 @@ async function start() {
   try {
     if (process.env.DB_MIGRATE === 'true') await migrate(pool);
     const origins = (process.env.CORS_ORIGINS ?? '').split(',').map(value => value.trim()).filter(Boolean);
-    const server = createApp(() => readStatus(pool), origins).listen(port, '0.0.0.0', () => {
+    const server = createApp(() => readStatus(pool), origins, createApi(pool)).listen(port, '0.0.0.0', () => {
       console.log('ReconstruyeHome API escuchando en el puerto ' + port);
     });
     const shutdown = () => {

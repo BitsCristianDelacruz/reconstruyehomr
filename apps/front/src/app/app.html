@@ -1,31 +1,16 @@
-<main>
-  <header>
-    <div class="brand"><img src="favicon.svg" width="36" height="36" alt="">ReconstruyeHome</div>
-    <span class="environment">Desarrollo local</span>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<div class="site-shell">
+  <header class="topbar">
+    <a routerLink="/" class="brand" aria-label="ReconstruyeHome, inicio"><span class="brand-mark" aria-hidden="true">r.</span><span>reconstruye<span class="brand-dot">.</span></span></a>
+    <a routerLink="/cuenta" class="account-link">{{auth.profile() ? 'Mi cuenta' : 'Ingresar'}} <span aria-hidden="true">↗</span></a>
   </header>
-  <section aria-labelledby="title">
-    <p class="eyebrow">ENTORNO DE TRABAJO</p>
-    <h1 id="title">Todo empieza con una buena base.</h1>
-    <p class="intro">Comprueba la conexión entre la aplicación, la API y la base de datos para empezar a desarrollar.</p>
-    <div class="status-panel" aria-live="polite" [attr.aria-busy]="loading()">
-      <div class="panel-title">
-        <h2>Estado de los servicios</h2>
-        @if (status()) { <span class="badge">Conexión verificada</span> }
-      </div>
-      <dl>
-        <div><dt>Frontend <span>Angular</span></dt><dd class="ok">En ejecución</dd></div>
-        <div><dt>Backend <span>Node.js · Express</span></dt><dd [class.ok]="status()">{{ loading() ? 'Comprobando…' : status() ? 'Conectado' : 'Sin verificar' }}</dd></div>
-        <div><dt>Base de datos <span>SQL Server · compatible con Azure SQL</span></dt><dd [class.ok]="status()">{{ loading() ? 'Comprobando…' : status() ? 'Conectada' : 'Sin verificar' }}</dd></div>
-      </dl>
-      @if (status(); as result) {
-        <div class="database-detail">
-          <p><strong>{{ result.application.name }}</strong> · {{ result.database.name }}</p>
-          <p>Respuesta de la base: {{ result.database.time | date:'dd/MM/yyyy, HH:mm:ss' }}</p>
-        </div>
-      }
-      @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
-      <button type="button" (click)="checkConnection()" [disabled]="loading()">{{ loading() ? 'Comprobando conexión…' : 'Comprobar conexión' }} <span aria-hidden="true">↗</span></button>
-    </div>
-    <p class="footnote">Los cambios en el código se actualizan automáticamente en el entorno local.</p>
-  </section>
-</main>
+  <div class="local-banner">Entorno local de desarrollo · utiliza datos ficticios</div>
+  <main id="contenido" tabindex="-1"><router-outlet /></main>
+  <footer class="site-footer"><span>Ayudas en especie. Acuerdos con cuidado.</span><a routerLink="/estado">Estado local</a>@if(auth.hasRole('admin','moderator')){<a routerLink="/administracion">Administración</a>}</footer>
+  <nav class="bottom-nav" aria-label="Navegación principal">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"><span aria-hidden="true">▦</span>Muro</a>
+    <a routerLink="/publicar" routerLinkActive="active"><span aria-hidden="true">＋</span>Publicar</a>
+    <a routerLink="/mis-publicaciones" routerLinkActive="active"><span aria-hidden="true">▤</span>Mis publicaciones</a>
+    <a routerLink="/seguridad" routerLinkActive="active"><span aria-hidden="true">◇</span>Seguridad</a>
+  </nav>
+</div>

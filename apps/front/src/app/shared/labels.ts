@@ -1,0 +1,3 @@
+export function stateLabel(state:string){return ({draft:'Borrador',published:'Publicada',paused:'Pausada',closed:'Cerrada',declared:'Declarado',coordinated:'Coordinado',received:'Recibido',cancelled:'Cancelado',reported:'Reportado',hidden:'Oculto',pending:'Pendiente',resolved:'Resuelto',escalated:'Escalado',active:'Activa',disabled:'Desactivada',deactivation_requested:'Desactivación solicitada'} as Record<string,string>)[state]??state;}
+export const roleOptions=[{code:'affected',label:'Persona afectada'},{code:'donor',label:'Donante o voluntario'},{code:'professional',label:'Profesional'},{code:'organization',label:'Organización'}];
+

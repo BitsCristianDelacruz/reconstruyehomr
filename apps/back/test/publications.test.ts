@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { Router } from 'express';
+import { PublicationService } from '../src/modules/publications/service.js';
+import { publicationRouter } from '../src/modules/publications/router.js';
+import { runtime } from '../src/shared/ports.js';
+import { serve } from './helpers.js';
+import { MemoryPublications,activeCatalogs,needInput } from './memory.js';
+test('need endpoints: drafts, required fields, ownership, optimistic versions and lifecycle confirmations',async()=>{
+  const repo=new MemoryPublications();const service=new PublicationService(repo,activeCatalogs,runtime);
+  const owner={id:runtime.id(),roles:['affected']};let account:typeof owner|undefined=owner;
+  const router=Router();router.use((_req,res,next)=>{res.locals.account=account;next();},publicationRouter(service));
+  const http=await serve(router);
+  const request=(path:string,method='GET',body?:unknown)=>fetch(http.base+path,{method,headers:{'Content-Type':'application/json','X-Requested-With':'ReconstruyeHome'},body:body===undefined?undefined:JSON.stringify(body)});
+  try{
+    account=undefined;assert.equal((await request('/needs','POST',{})).status,401);account=owner;
+    const draftResponse=await request('/needs','POST',{});assert.equal(draftResponse.status,201);let draft=await draftResponse.json();
+    assert.equal(draft.state,'draft');
+    assert.equal((await request('/needs','POST',{state:'published'})).status,400);
+    assert.equal((await request('/needs','POST',{...needInput,exactAddress:'prohibited'})).status,400);
+    const edit=await request('/publications/'+draft.id,'PATCH',{...needInput,version:1});assert.equal(edit.status,200);draft=await edit.json();
+    assert.equal((await request('/publications/'+draft.id,'PATCH',{title:'Obsoleto',version:1})).status,409);
+    account={id:runtime.id(),roles:['admin']};
+    assert.equal((await request('/publications/'+draft.id,'PATCH',{title:'Ajeno',version:2})).status,404);
+    assert.equal((await request('/me/publications/'+draft.id)).status,404);
+    account=owner;
+    const transition=async(action:string,version:number,confirmed=false)=>request('/publications/'+draft.id+'/transitions/'+action,'POST',{version,confirmed});
+    assert.equal((await transition('publish',2)).status,200);
+    assert.equal((await transition('publish',3)).status,409);
+    assert.equal((await transition('pause',3)).status,200);
+    assert.equal((await transition('reopen',4)).status,200);
+    assert.equal((await transition('close',5)).status,400);
+    assert.equal((await transition('close',5,true)).status,200);
+    assert.equal((await request('/publications/'+draft.id,'PATCH',{title:'Cerrada',version:6})).status,409);
+    assert.equal((await transition('reopen',6)).status,200);
+    assert.equal((await (await request('/me/publications')).json()).items.length,1);
+    assert.equal((await request('/me/publications/'+draft.id)).status,200);
+    repo.items[0]!.hidden=true;
+    assert.equal((await transition('pause',7)).status,403);
+    assert.equal((await request('/publications/'+draft.id,'PATCH',{title:'Oculta',version:7})).status,403);
+    assert.equal((await repo.timeline(draft.id)).length,7);
+  }finally{await http.close();}
+});

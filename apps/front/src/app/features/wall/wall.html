@@ -1,0 +1,32 @@
+<section class="hero" aria-labelledby="wall-title">
+  <span class="eyebrow">Volver a empezar, en comunidad</span><h1 id="wall-title">Ayuda a reconstruir,<br>con cuidado.</h1>
+  <p>Conecta necesidades de vivienda con materiales, manos y conocimiento. Cada aporte puede abrir una nueva posibilidad.</p>
+  <div class="actions"><a class="button" routerLink="/publicar">Publicar una necesidad u oferta <span aria-hidden="true">↗</span></a><a class="button quiet" routerLink="/seguridad">Cómo ayudar con cuidado</a></div>
+</section>
+<div class="section-title"><h2>El muro de la comunidad</h2>@if(wall()){<small aria-live="polite">{{wall()!.total}} publicaciones</small>}</div>
+<div class="chips" aria-label="Categorías"><button class="chip" [class.selected]="!filters.controls.category.value" [attr.aria-pressed]="!filters.controls.category.value" (click)="category('')">Todas</button>@for(c of catalogs.entries('category');track c.code){<button class="chip" [class.selected]="filters.controls.category.value===c.code" [attr.aria-pressed]="filters.controls.category.value===c.code" (click)="category(c.code)">{{c.label}}</button>}</div>
+<details class="filters"><summary>Filtrar por zona, tipo y urgencia</summary><form [formGroup]="filters" (ngSubmit)="load()">
+  <div class="form-grid">
+    <div class="field"><label for="filter-kind">Tipo de publicación</label><select id="filter-kind" formControlName="kind"><option value="">Solicitudes y ofertas</option><option value="need">Necesidades</option><option value="offer">Ofertas de ayuda</option></select></div>
+    <div class="field"><label for="filter-zone">Municipio</label><select id="filter-zone" formControlName="territory"><option value="">Todos los municipios</option>@for(t of catalogs.entries('territory');track t.code){<option [value]="t.code">{{t.label}}</option>}</select></div>
+    <div class="field"><label for="filter-urgency">Urgencia de la necesidad</label><select id="filter-urgency" formControlName="urgency"><option value="">Todas las prioridades</option>@for(u of catalogs.entries('urgency');track u.code){<option [value]="u.code">{{u.label}}</option>}</select></div>
+    <div class="field"><label for="filter-state">Estado</label><select id="filter-state" formControlName="state"><option value="published">Abiertas</option><option value="closed">Cerradas</option></select></div>
+  </div><div class="actions" style="margin-top:18px"><button type="submit">Aplicar filtros</button><button type="button" class="quiet" (click)="clear()">Limpiar</button></div>
+</form></details>
+<app-error [error]="error()" />
+@if(error()){<button class="secondary" (click)="initialize()">Volver a intentar</button>}
+@if(loading()){<p role="status">Buscando publicaciones…</p>}
+@if(!loading()&&wall();as result){
+  @if(result.items.length){<section class="grid" aria-label="Publicaciones">
+    @for(p of result.items;track p.id){<article class="card">
+      <div class="card-meta"><span class="tag" [class.offer]="p.kind==='offer'">{{p.kind==='need'?'Necesita':'Ofrece'}} · {{p.categoryLabel||catalogs.label('category',p.category)}}</span>@if(p.urgency==='high'){<span class="tag urgent">Urgente</span>}</div>
+      <h3><a [routerLink]="['/publicacion',p.id]">{{p.title}}</a></h3>
+      <div class="card-meta"><span>⌖ {{p.territoryLabel||catalogs.label('territory',p.territory)}}</span></div>
+      <p>{{p.description.length>165?p.description.slice(0,165)+'…':p.description}}</p>
+      <small>{{p.zone}} · {{p.updatedAt|date:'d MMM yyyy'}}</small>
+      <div class="actions"><a class="button secondary small" [routerLink]="['/publicacion',p.id]">Ver {{p.kind==='need'?'necesidad':'oferta'}} <span aria-hidden="true">↗</span></a><small>Información declarada</small></div>
+    </article>}
+  </section>
+  <div class="pagination"><button class="quiet small" [disabled]="page()===1" (click)="load(page()-1)">Anterior</button><span>Página {{page()}}</span><button class="quiet small" [disabled]="page()*result.limit>=result.total" (click)="load(page()+1)">Siguiente</button></div>
+  }@else{<section class="empty"><div class="empty-symbol" aria-hidden="true">⌂</div><h2>Aún no hay publicaciones aquí</h2><p>Prueba otros filtros o comparte la primera necesidad u oferta de tu comunidad.</p><a class="button" routerLink="/publicar">Crear una publicación</a></section>}
+}

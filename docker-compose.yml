@@ -32,6 +32,8 @@ services:
     init: true
     environment:
       NODE_ENV: development
+      AUTH_MODE: local
+      COOKIE_SECURE: "false"
       PORT: "3000"
       CORS_ORIGINS: http://localhost:${FRONTEND_PORT:-4200},http://127.0.0.1:${FRONTEND_PORT:-4200}
       DB_HOST: database

@@ -2,6 +2,8 @@
 
 Este trabajo configura y valida el entorno local. No crea ni publica recursos de Azure.
 
+El MVP funcional ya compila como artefacto estático, pero la autenticación actual exige modo local y rechaza producción. Antes del lanzamiento se debe integrar verificación de correo, recuperación y proveedor definitivo, y resolver las políticas pendientes del SRS. Configurar una URL de backend por sí solo no habilita autenticación pública.
+
 ```text
 Angular -> Azure Static Web Apps
         -> API Express HTTPS (por ejemplo, Azure Container Apps)
@@ -18,6 +20,8 @@ Angular -> Azure Static Web Apps
 - Se incluye `staticwebapp.config.json` con fallback de navegación y exclusión de rutas API.
 
 El proxy de Angular existe solo en desarrollo; Static Web Apps no interpreta `proxy.conf.cjs`. Por eso la configuración de la URL pública es obligatoria al usar un backend separado. [Configuración de Static Web Apps](https://learn.microsoft.com/en-us/azure/static-web-apps/configuration).
+
+La cookie de desarrollo es SameSite=Lax. Para dominios separados se debe diseñar y probar la integración de sesión con el proveedor definitivo, HTTPS, Secure, protección de solicitudes y, cuando corresponda, SameSite=None. Ese soporte no está implementado como configuración de producción en este MVP. También puede evaluarse un acceso al API bajo el mismo sitio.
 
 ## Backend y base
 

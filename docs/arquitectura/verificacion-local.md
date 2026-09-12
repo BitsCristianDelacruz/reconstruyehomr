@@ -1,5 +1,7 @@
 # Verificación local
 
+Registro de la etapa inicial de contenedores y diagnóstico. La verificación posterior de las APIs funcionales, Angular y OpenSpec está en [verificacion-mvp-local.md](verificacion-mvp-local.md).
+
 Ejecutada el 11 de septiembre de 2026 en Windows, Docker Desktop con motor Linux y Docker Compose v5.3.0.
 
 ## Resultado

@@ -1,0 +1,55 @@
+<a routerLink="/">← Volver al muro</a><app-error [error]="modal()?null:error()" />@if(success()){<p class="success" role="status">{{success()}}</p>}
+@if(loading()){<p role="status">Cargando publicación…</p>}
+@if(!loading()&&error()&&!publication()){<div class="empty"><h1>Esta publicación no está disponible</h1><p>Puede estar pausada, restringida o pertenecer a una cuenta desactivada.</p><button class="secondary" (click)="load()">Volver a intentar</button></div>}
+@if(publication();as p){
+<div class="page-head" style="margin-top:26px"><div><div class="tags"><span class="tag" [class.offer]="p.kind==='offer'">{{p.kind==='need'?'Necesita ayuda':'Ofrece ayuda'}}</span><span class="tag">{{catalogs.label('category',p.category)}}</span>@if(p.urgency==='high'){<span class="tag urgent">Urgente</span>}</div><h1>{{p.title}}</h1><p class="muted">⌖ {{p.territoryLabel||catalogs.label('territory',p.territory)}} · {{p.zone}}</p></div></div>
+<div class="detail-grid">
+<section class="panel"><h2>{{p.kind==='need'?'Lo que se necesita':'La ayuda disponible'}}</h2><p class="detail-text">{{p.description}}</p><dl class="data-list">
+@if(p.kind==='need'){<div><dt>Daño descrito</dt><dd class="detail-text">{{p.damage}}</dd></div><div><dt>Prioridad declarada</dt><dd>{{catalogs.label('urgency',p.urgency)}}</dd></div>}@else{<div><dt>Disponibilidad</dt><dd>{{p.availability}}</dd></div><div><dt>Condiciones</dt><dd class="detail-text">{{p.conditions}}</dd></div>}
+<div><dt>Estado</dt><dd>{{label(p.state)}}</dd></div><div><dt>Última actualización</dt><dd>{{p.updatedAt|date:'d MMM yyyy, HH:mm'}}</dd></div></dl>
+<span class="tag">Información declarada</span><p class="notice">La información proviene de quien publica. No hay validación de aliado ni garantía sobre identidad, aportes o resultados.</p>
+@if(p.isOwner){<a class="button secondary" routerLink="/mis-publicaciones">Gestionar mi publicación</a>}
+</section>
+<aside class="stack"><section class="panel"><h2>{{p.kind==='need'?'Un aporte puede ayudar':'Coordina esta ayuda'}}</h2>
+@if(!auth.profile()){<p>Ingresa para contactar, aportar o reportar.</p><a class="button" routerLink="/cuenta" [queryParams]="{returnUrl:'/publicacion/'+p.id}">Ingresar para participar</a>}@else{
+<div class="stack">
+@if(p.contactAvailable){<button (click)="open('contact')">Contactar por WhatsApp ↗</button>}@else{<p class="notice">El contacto no está habilitado en esta publicación.</p>}
+@if(p.kind==='need'&&p.state==='published'&&!p.isOwner){<button class="secondary" (click)="open('contribute')">Declarar un aporte</button>}
+<button class="quiet small" (click)="open('report')">Reportar publicación o responsable</button></div>
+}
+<p class="muted" style="margin-top:18px;font-size:14px">No envíes dinero. Comparte solo lo necesario y acuerda condiciones claras.</p><a routerLink="/seguridad">Leer recomendaciones de seguridad</a>
+</section></aside></div>
+<section style="margin-top:32px"><div class="section-title"><h2>Aportes y seguimiento</h2><small>{{contributions().length}} {{contributions().length===1?'aporte':'aportes'}}</small></div>
+@if(contributions().length){<div class="grid">@for(c of contributions();track c.id){<article class="card"><div class="card-meta"><span class="tag">{{label(c.state)}}</span><small>{{c.updatedAt|date:'d MMM yyyy'}}</small></div><h3>{{catalogs.label('category',c.type)}}</h3>
+@if(c.note){<p class="detail-text">{{c.note}}</p><small>Nota privada visible solo para participantes.</small>}
+@if(c.state==='received'){<p>Recepción confirmada por el responsable del caso.</p>}
+@if(c.isOwner||c.isContributor){<div class="actions">
+@if(c.state==='declared'){<button class="secondary small" (click)="ask(c,'coordinate')">Marcar coordinado</button>}
+@if(c.isOwner&&(c.state==='declared'||c.state==='coordinated')){<button class="small" (click)="ask(c,'receive')">Confirmar recibido</button>}
+@if(c.state==='declared'||c.state==='coordinated'){<button class="quiet small" (click)="ask(c,'cancel')">Cancelar aporte</button>}
+@if(c.isOwner&&(c.state==='declared'||c.state==='coordinated'||c.state==='received')){<button class="danger small" (click)="ask(c,'dispute')">Disputar recepción</button>}
+<button class="quiet small" [disabled]="busy()" (click)="showHistory(c)">Ver historial</button></div>}
+@if(auth.profile()){<button class="quiet small" (click)="reportContribution(c)">Reportar aporte</button>}
+</article>}</div>}@else{<p class="notice">Aún no hay aportes registrados. Las contribuciones son en especie y no constituyen una garantía legal o tributaria.</p>}
+</section>
+<section class="panel" style="margin-top:24px"><h2>Historia del caso</h2><ol class="timeline">@for(event of p.timeline??[];track $index){<li>{{eventLabel(event)}}@if(event.contributionType){ · {{catalogs.label('category',event.contributionType)}}}<time>{{event.createdAt|date:'d MMM yyyy, HH:mm'}}</time></li>}</ol><small>Confirmar un aporte recibido no cierra automáticamente la solicitud.</small></section>
+}
+<app-dialog [opened]="!!modal()" labelId="action-title" (dismissed)="close()">
+<div class="dialog-top"><h2 id="action-title">{{modal()==='contact'?'Antes de contactar':modal()==='contribute'?'Declara tu aporte':modal()==='report'?'Enviar un reporte':modal()==='history'?'Historia del aporte':'Actualizar aporte'}}</h2><button class="quiet small" aria-label="Cerrar diálogo" (click)="close()">×</button></div><app-error [error]="error()" />
+@if(modal()==='contact'){
+<p>{{catalogs.label('safety','contact')}}</p><p class="notice">Al abrir WhatsApp, tu número podrá ser visible para la otra persona según tus ajustes. El mensaje inicial solo incluye la referencia de esta publicación.</p>
+@if(!contactUrl()){<label class="check"><input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)">Leí las recomendaciones y deseo obtener el enlace de contacto.</label><button [disabled]="!confirmed()||busy()" (click)="contact()">Preparar enlace de WhatsApp</button>}@else{<p>El enlace está listo. Podrás editar el mensaje antes de enviarlo.</p><a class="button" [href]="contactUrl()" target="_blank" rel="noopener noreferrer">Abrir WhatsApp ↗</a>}
+}
+@if(modal()==='contribute'){<form class="form-stack" [formGroup]="contributionForm" (ngSubmit)="contribute()">
+<p>Registra una intención de ayuda en especie. Coordinarás la entrega por el canal habilitado.</p><div class="field"><label for="contribution-type">Tipo de aporte *</label><select id="contribution-type" formControlName="type"><option value="">Selecciona un tipo</option>@for(c of catalogs.entries('category');track c.code){<option [value]="c.code">{{c.label}}</option>}</select><app-field-error [control]="contributionForm.controls.type" name="type" [server]="error()" /></div>
+<div class="field"><label for="contribution-note">Nota para coordinar (opcional)</label><textarea id="contribution-note" formControlName="note" maxlength="1000"></textarea><small>Solo tú y el responsable del caso pueden verla. Evita datos sensibles.</small></div>
+<label class="check"><input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)">Comprendo que esto registra mi intención y no certifica una entrega ni genera una garantía.</label><button [disabled]="!confirmed()||busy()">Declarar aporte</button></form>}
+@if(modal()==='report'){<form class="form-stack" [formGroup]="reportForm" (ngSubmit)="report()">
+<p>El reporte será revisado manualmente. No hay atención inmediata ni ocultamiento automático.</p>
+@if(reportTarget().type!=='contribution'){<div class="field"><label for="report-target">¿Qué deseas reportar?</label><select id="report-target" [value]="reportTarget().type" (change)="reportTarget.set({type:$any($event.target).value,id:publication()!.id})"><option value="publication">Esta publicación</option><option value="profile">Su responsable</option></select></div>}@else{<span class="tag">Reporte de contribución</span>}
+<div class="field"><label for="report-category">Motivo *</label><select id="report-category" formControlName="category"><option value="">Selecciona un motivo</option>@for(c of catalogs.entries('reportCategory');track c.code){<option [value]="c.code">{{c.label}}</option>}</select><app-field-error [control]="reportForm.controls.category" name="category" [server]="error()" /></div>
+<div class="field"><label for="report-detail">Detalle (opcional)</label><textarea id="report-detail" formControlName="detail" maxlength="1000"></textarea><small>No adjuntes documentos ni datos privados innecesarios.</small></div>
+<label class="check"><input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)">Confirmo que quiero enviar este reporte para revisión.</label><button [disabled]="!confirmed()||busy()">Enviar reporte</button></form>}
+@if(modal()==='transition'&&pending();as item){<p>{{actionLabel(item.action)}}: {{catalogs.label('category',item.contribution.type)}}.</p><p>{{item.action==='receive'?'Confirma únicamente si recibiste el aporte. La solicitud permanecerá abierta.':item.action==='dispute'?'La contribución quedará reportada. Este registro no equivale a una resolución de la disputa.':'El cambio quedará registrado en el historial.'}}</p><label class="check"><input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)">Confirmo esta actualización del aporte.</label><button [disabled]="!confirmed()||busy()" (click)="transition()">{{actionLabel(item.action)}}</button>}
+@if(modal()==='history'){<ol class="timeline">@for(event of history();track $index){<li>{{eventLabel(event)}}<time>{{event.createdAt|date:'d MMM yyyy, HH:mm'}}</time></li>}</ol>}
+</app-dialog>

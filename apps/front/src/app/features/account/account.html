@@ -1,0 +1,38 @@
+<section class="narrow">
+<div class="page-head"><div><span class="eyebrow">Tu lugar en la comunidad</span><h1>{{auth.profile()?'Mi cuenta':'Vamos a reconstruir'}}</h1><p class="muted">{{auth.profile()?'Decide cómo participar y cómo pueden contactarte.':'Crea una cuenta local o ingresa para publicar y ayudar.'}}</p></div></div>
+@if(loading()){<p role="status">Cargando tu cuenta…</p>}
+@if(!auth.profile()){<div class="tabs" aria-label="Acceso"><button class="chip" [class.selected]="mode()==='login'" [attr.aria-pressed]="mode()==='login'" (click)="changeMode('login')">Ingresar</button><button class="chip" [class.selected]="mode()==='register'" [attr.aria-pressed]="mode()==='register'" (click)="changeMode('register')">Crear cuenta</button></div>}
+<app-error [error]="error()" />@if(success()){<p class="success" role="status">{{success()}}</p>}
+@if(!auth.profile()&&mode()==='login'){
+<form class="panel form-stack" [formGroup]="loginForm" (ngSubmit)="login()">
+  <div class="field"><label for="login-email">Correo electrónico *</label><input id="login-email" type="email" autocomplete="username" formControlName="email"><app-field-error [control]="loginForm.controls.email" name="email" [server]="error()" /></div>
+  <div class="field"><label for="login-password">Contraseña *</label><input id="login-password" type="password" autocomplete="current-password" formControlName="password"><app-field-error [control]="loginForm.controls.password" name="password" [server]="error()" /></div>
+  <button [disabled]="busy()">{{busy()?'Ingresando…':'Ingresar'}}</button><small>Acceso de desarrollo local. La verificación y recuperación de correo se habilitarán antes del lanzamiento.</small>
+</form>
+}@else{
+<form class="panel form-stack" [formGroup]="form" (ngSubmit)="save()">
+  @if(!auth.profile()){
+    <div class="field"><label for="register-email">Correo electrónico *</label><input id="register-email" type="email" autocomplete="username" formControlName="email"><app-field-error [control]="form.controls.email" name="email" [server]="error()" /></div>
+    <div class="field"><label for="register-password">Contraseña *</label><input id="register-password" type="password" autocomplete="new-password" formControlName="password"><small>Entre 12 y 128 caracteres.</small><app-field-error [control]="form.controls.password" name="password" [server]="error()" /></div>
+  }@else{<small>{{auth.profile()!.email}} · Cuenta de desarrollo</small>}
+  <div class="field"><label for="profile-name">Nombre visible *</label><input id="profile-name" formControlName="name" maxlength="80" autocomplete="nickname"><app-field-error [control]="form.controls.name" name="name" [server]="error()" /></div>
+  <div class="field"><label for="profile-territory">Municipio aproximado *</label><select id="profile-territory" formControlName="territory"><option value="">Selecciona un municipio</option>@for(t of catalogs.entries('territory');track t.code){<option [value]="t.code">{{t.label}}</option>}</select><app-field-error [control]="form.controls.territory" name="territory" [server]="error()" /></div>
+  <fieldset><legend>¿Cómo participas? *</legend><small>Puedes elegir varios roles.</small>@for(role of roles;track role.code){<label class="check"><input type="checkbox" [checked]="form.controls.roles.value.includes(role.code)" (change)="toggleRole(role.code,$any($event.target).checked)">{{role.label}}</label>}<app-field-error [control]="form.controls.roles" name="roles" [server]="error()" /></fieldset>
+  <div class="field"><label for="profile-phone">WhatsApp (opcional)</label><input id="profile-phone" type="tel" formControlName="phone" placeholder="+573000000000" autocomplete="tel"><small>Incluye el indicativo del país. Nunca aparece en el muro.</small><app-field-error [control]="form.controls.phone" name="phone" [server]="error()" /></div>
+  <label class="check"><input type="checkbox" formControlName="contactConsent">Autorizo compartir mi número mediante el enlace de WhatsApp únicamente en publicaciones donde habilite contacto, después de que la otra persona acepte las recomendaciones.</label>
+  @if(!auth.profile()){<label class="check"><input type="checkbox" formControlName="privacyConsent">Comprendo que este es un entorno de desarrollo y autorizo guardar los datos ficticios de mi cuenta para probar la plataforma. La política definitiva está pendiente.</label><app-field-error [control]="form.controls.privacyConsent" name="privacyConsent" [server]="error()" />}
+  <button [disabled]="busy()||loading()">{{busy()?'Guardando…':auth.profile()?'Guardar mi perfil':'Crear mi cuenta'}}</button>
+</form>
+}
+@if(auth.profile()){
+<div class="actions" style="margin-top:22px"><button class="secondary" (click)="logout()" [disabled]="busy()">Cerrar sesión</button>@if(auth.hasRole('moderator','admin')){<a class="button quiet" routerLink="/administracion">Ir a administración</a>}</div>
+<details class="notice"><summary>Desactivar mi cuenta</summary><p>Se cerrarán tus sesiones y tus publicaciones dejarán de ser públicas. Los registros se conservarán hasta definir la política de retención y eliminación.</p><button class="danger small" (click)="confirmed.set(false);deactivationOpen.set(true)">Solicitar desactivación</button></details>
+}
+</section>
+<app-dialog [opened]="deactivationOpen()" labelId="deactivation-title" (dismissed)="deactivationOpen.set(false)">
+  <div class="dialog-top"><h2 id="deactivation-title">¿Desactivar tu cuenta?</h2><button class="quiet small" aria-label="Cerrar confirmación" (click)="deactivationOpen.set(false)">×</button></div>
+  <p>Perderás el acceso y tus publicaciones dejarán de verse. Los datos todavía no se eliminarán.</p>
+  <label class="check"><input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)">Comprendo el efecto y solicito la desactivación.</label><app-error [error]="error()" />
+  <div class="actions"><button class="danger" [disabled]="!confirmed()||busy()" (click)="deactivate()">Desactivar cuenta</button><button class="quiet" (click)="deactivationOpen.set(false)">Volver</button></div>
+</app-dialog>
+

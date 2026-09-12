@@ -1,5 +1,10 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
+import { provideRouter,withInMemoryScrolling } from '@angular/router';
+import { LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
 import { App } from './app/app';
-
-bootstrapApplication(App, { providers: [provideHttpClient()] }).catch(console.error);
+import { routes } from './app/app.routes';
+registerLocaleData(localeEs);
+bootstrapApplication(App,{providers:[provideHttpClient(),{provide:LOCALE_ID,useValue:'es'},provideRouter(routes,withInMemoryScrolling({scrollPositionRestoration:'top'}))]}).catch(console.error);

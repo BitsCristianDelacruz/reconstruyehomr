@@ -19,3 +19,6 @@ Thumbs.db
 
 # Docker local data
 .docker-data/
+
+# Derived text extracted while reviewing the original Word references
+output/documentation-review/

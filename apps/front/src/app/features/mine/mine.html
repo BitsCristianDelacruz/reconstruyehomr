@@ -1,0 +1,24 @@
+<div class="page-head"><div><span class="eyebrow">Lo que estamos construyendo</span><h1>Mis publicaciones</h1><p class="muted">Gestiona tus necesidades, ofertas y aportes.</p></div><a class="button" routerLink="/publicar">＋ Publicar</a></div>
+<app-error [error]="error()" />@if(error()){<button class="secondary small" (click)="load()">Actualizar</button>}
+@if(loading()){<p role="status">Cargando tus publicaciones…</p>}@else{
+@if(items().length){<section class="grid" aria-label="Tus publicaciones">@for(p of items();track p.id){<article class="card">
+<div class="card-meta"><span class="tag">{{p.kind==='need'?'Necesidad':'Oferta'}}</span><span class="tag" [class.urgent]="p.hidden">{{p.hidden?'Oculta por moderación':label(p.state)}}</span></div><h3>{{p.title||'Borrador sin título'}}</h3><small>{{p.territoryLabel||catalogs.label('territory',p.territory)}} · {{p.updatedAt|date:'d MMM yyyy'}}</small>
+@if(p.moderationState==='reported'&&!p.hidden){<small>Hay un reporte en revisión. La publicación conserva su estado.</small>}
+@if(p.hidden){<p>La publicación está restringida y no puede editarse. Su revisión corresponde a moderación.</p>}@else{
+<div class="actions">
+@if(p.state==='published'||p.state==='closed'){<a class="button secondary small" [routerLink]="['/publicacion',p.id]">Ver detalle</a>}
+@if(p.state!=='closed'){<a class="button quiet small" [routerLink]="['/editar',p.id]">{{p.state==='draft'?'Continuar borrador':'Editar'}}</a>}
+@if(p.state==='published'){<button class="quiet small" (click)="ask(p,'pause')">Pausar</button>}
+@if(p.state==='paused'||p.state==='closed'){<button class="quiet small" (click)="ask(p,'reopen')">Reabrir</button>}
+@if(p.state==='published'||p.state==='paused'){<button class="danger small" (click)="ask(p,'close')">Cerrar</button>}
+</div>}
+</article>}</section>}@else{<section class="empty"><div class="empty-symbol" aria-hidden="true">⌂</div><h2>Tu primer paso empieza aquí</h2><p>Todavía no tienes publicaciones. Puedes guardar un borrador y terminarlo después.</p><a class="button" routerLink="/publicar">Crear publicación</a></section>}
+<div class="section-title"><h2>Mis contribuciones</h2></div>
+@if(contributions().length){<section class="grid" aria-label="Tus contribuciones">@for(c of contributions();track c.id){<article class="card"><span class="tag">{{label(c.state)}}</span><h3>{{c.publicationTitle}}</h3><p>{{catalogs.label('category',c.type)}}</p><small>{{c.isOwner?'Eres responsable del caso':'Eres aportante'}}</small><a class="button secondary small" [routerLink]="['/publicacion',c.publicationId]">Gestionar aporte</a></article>}</section>}@else{<p class="notice">Aquí aparecerán los aportes que declares y los que reciba tu solicitud. Confirmar un aporte recibido no cierra el caso.</p>}
+}
+<app-dialog [opened]="!!pending()" labelId="transition-title" (dismissed)="pending.set(null)">
+  @if(pending();as p){<div class="dialog-top"><h2 id="transition-title">{{actionLabel(p.action)}} publicación</h2><button class="quiet small" aria-label="Cerrar confirmación" (click)="pending.set(null)">×</button></div><p>{{p.publication.title}}</p>
+  <p>{{p.action==='close'?'El caso dejará de admitir nuevos contactos y aportes. Su historial seguirá disponible.':p.action==='pause'?'La publicación saldrá temporalmente del muro. Podrás reabrirla después.':'La publicación volverá al muro y podrá recibir ayuda.'}}</p>
+  <label class="check"><input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)">Confirmo este cambio de estado.</label><app-error [error]="error()" /><div class="actions"><button [disabled]="!confirmed()||busy()" (click)="transition()">{{actionLabel(p.action)}}</button><button class="quiet" (click)="pending.set(null)">Volver</button></div>}
+</app-dialog>
+

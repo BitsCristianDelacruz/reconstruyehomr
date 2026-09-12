@@ -10,6 +10,12 @@
     "logs": "docker compose logs -f front back",
     "test": "docker compose exec -T back npm test",
     "test:smoke": "node scripts/smoke-test.mjs",
+    "test:integration": "node scripts/api-integration.mjs",
+    "test:coverage": "docker compose exec -T back npm run test:coverage",
+    "spec:validate": "openspec validate --all --strict",
     "build": "docker compose exec -T back npm run build && docker compose exec -T front npm run build"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "1.13.0"
   }
 }

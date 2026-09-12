@@ -1,0 +1,38 @@
+<section class="narrow"><span class="eyebrow">Un primer paso cuenta</span><h1>{{existing()?'Tu publicación':'¿Qué necesitas o puedes aportar?'}}</h1><p class="muted">Comparte lo esencial. No publiques datos personales ni direcciones exactas.</p>
+<ol class="steps" aria-label="Progreso de publicación"><li [class.current]="step()===1" [attr.aria-current]="step()===1?'step':null">1. Tipo</li><li [class.current]="step()===2" [attr.aria-current]="step()===2?'step':null">2. Detalles</li><li [class.current]="step()===3" [attr.aria-current]="step()===3?'step':null">3. Cuidado</li></ol>
+<app-error [error]="error()" />@if(success()){<div class="success" role="status">{{success()}} <a routerLink="/mis-publicaciones">Ver mis publicaciones</a></div>}
+@if(loading()){<p role="status">Preparando el formulario…</p>}
+<form [formGroup]="form" (ngSubmit)="save()" class="panel form-stack">
+@if(step()===1){
+  <h2>Empecemos por el tipo</h2><div class="choice-grid"><label class="choice"><input type="radio" formControlName="kind" value="need"><strong>Necesito ayuda</strong><span>Materiales, manos o conocimientos para reconstruir.</span></label><label class="choice"><input type="radio" formControlName="kind" value="offer"><strong>Quiero ayudar</strong><span>Comparte qué puedes aportar y en qué zona.</span></label></div>
+}
+@if(step()===2){
+  <h2>{{form.controls.kind.value==='need'?'Cuéntanos qué necesitas':'Cuéntanos qué ofreces'}}</h2><small>Los campos con * son obligatorios para publicar. Puedes guardar un borrador incompleto.</small>
+  <div class="field"><label for="post-title">Título breve *</label><input id="post-title" formControlName="title" maxlength="120" placeholder="Ejemplo: tejas para reparar una cubierta"><app-field-error [control]="form.controls.title" name="title" [server]="error()" /></div>
+  <div class="field"><label for="post-category">Categoría *</label><select id="post-category" formControlName="category"><option value="">Selecciona una categoría</option>@for(c of catalogs.entries('category');track c.code){<option [value]="c.code">{{c.label}}</option>}</select><app-field-error [control]="form.controls.category" name="category" [server]="error()" /></div>
+  <div class="field"><label for="post-description">Descripción *</label><textarea id="post-description" formControlName="description" maxlength="3000" placeholder="Describe la ayuda en especie. Evita teléfonos, direcciones, documentos y solicitudes de dinero."></textarea><app-field-error [control]="form.controls.description" name="description" [server]="error()" /></div>
+  <div class="form-grid"><div class="field"><label for="post-territory">Municipio o cobertura *</label><select id="post-territory" formControlName="territory"><option value="">Selecciona un municipio</option>@for(t of catalogs.entries('territory');track t.code){<option [value]="t.code">{{t.label}}</option>}</select><app-field-error [control]="form.controls.territory" name="territory" [server]="error()" /></div>
+  <div class="field"><label for="post-zone">Zona aproximada *</label><input id="post-zone" formControlName="zone" maxlength="120" placeholder="Ejemplo: zona urbana"><small>Sin dirección exacta ni ubicación de la vivienda.</small><app-field-error [control]="form.controls.zone" name="zone" [server]="error()" /></div></div>
+  @if(form.controls.kind.value==='need'){
+    <div class="field"><label for="post-damage">Tipo de daño en la vivienda *</label><textarea id="post-damage" formControlName="damage" maxlength="500" placeholder="Describe el daño sin incluir información privada."></textarea><app-field-error [control]="form.controls.damage" name="damage" [server]="error()" /></div>
+    <div class="field"><label for="post-urgency">Urgencia *</label><select id="post-urgency" formControlName="urgency"><option value="">Selecciona una prioridad</option>@for(u of catalogs.entries('urgency');track u.code){<option [value]="u.code">{{u.label}}</option>}</select><app-field-error [control]="form.controls.urgency" name="urgency" [server]="error()" /></div>
+  }@else{
+    <div class="field"><label for="post-availability">Disponibilidad *</label><input id="post-availability" formControlName="availability" maxlength="500" placeholder="Ejemplo: sábados con acuerdo previo"><app-field-error [control]="form.controls.availability" name="availability" [server]="error()" /></div>
+    <div class="field"><label for="post-conditions">Condiciones de entrega o apoyo *</label><textarea id="post-conditions" formControlName="conditions" maxlength="1000" placeholder="Explica qué incluye la ayuda y cómo coordinarla, sin solicitar dinero."></textarea><app-field-error [control]="form.controls.conditions" name="conditions" [server]="error()" /></div>
+  }
+  <div class="notice">Fotos y evidencia todavía no están habilitadas. Se requiere definir su política de privacidad antes de recibirlas.</div>
+}
+@if(step()===3){
+  <h2>Publica con cuidado</h2><div class="notice">{{catalogs.label('safety','privacy')}}</div>
+  <dl class="data-list"><div><dt>Publicación</dt><dd>{{form.controls.title.value}}</dd></div><div><dt>Zona pública</dt><dd>{{catalogs.label('territory',form.controls.territory.value)}} · {{form.controls.zone.value}}</dd></div></dl>
+  <label class="check"><input type="checkbox" formControlName="contactEnabled">Habilitar el contacto por WhatsApp en esta publicación.</label>
+  @if(!auth.profile()?.contactConsent||!auth.profile()?.phone){<small>Para habilitar el enlace debes registrar un teléfono y autorizar su uso en <a routerLink="/cuenta">Mi cuenta</a>. Guarda primero un borrador para conservar estos datos.</small>}
+  <label class="check"><input type="checkbox" formControlName="safetyAccepted">Confirmo que puedo compartir esta información, que no contiene datos sensibles de otras personas y que comprendo que ReconstruyeHome no garantiza identidades, aportes ni resultados. *</label><app-field-error [control]="form.controls.safetyAccepted" name="safetyAccepted" [server]="error()" />
+}
+<div class="actions">
+  @if(step()>1){<button type="button" class="quiet" [disabled]="busy()" (click)="step.set(step()-1)">Atrás</button>}
+  @if(step()<3){<button type="button" [disabled]="loading()||busy()||existing()?.hidden" (click)="next()">Continuar</button>}@else{<button type="submit" [disabled]="busy()||existing()?.hidden">{{busy()?'Guardando…':existing()&&existing()!.state!=='draft'?'Guardar cambios':'Publicar'}}</button>}
+  @if(!existing()||existing()!.state==='draft'){<button type="button" class="secondary" [disabled]="busy()||loading()||existing()?.hidden" (click)="save(true)">Guardar borrador</button>}
+</div>
+</form><p class="notice">Las prioridades y territorios son configuraciones de demostración. En una emergencia, utiliza los canales oficiales; esta plataforma no presta atención inmediata.</p></section>
+

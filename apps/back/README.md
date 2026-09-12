@@ -1,30 +1,39 @@
 # Backend
 
-API REST con Node.js 24, Express 5, TypeScript y el controlador `mssql`. Reemplaza la plantilla vacía de Azure Functions.
+API REST con Node.js 24, Express 5, TypeScript y `mssql`. Desde la raíz: `docker compose up --build --wait --wait-timeout 240`.
 
-Desde la raíz: `docker compose up --build --wait`.
+Los módulos de catálogos, cuentas, publicaciones, contacto, contribuciones y moderación separan routers HTTP, servicios de negocio y repositorios. `src/composition.ts` inyecta dependencias; las reglas de negocio se prueban con adaptadores en memoria. SQL aplica las mismas interfaces con transacciones.
 
-| Endpoint | Comportamiento |
-| --- | --- |
-| GET /api/health | 200 si el proceso está activo |
-| GET /api/ready | 200 con datos consultados en SQL; 503 si falla la consulta |
-
-La respuesta de disponibilidad lee `dbo.ApplicationInfo`; incluye la fecha persistida de inicialización y la hora actual del motor SQL. Las rutas desconocidas devuelven JSON 404. Los errores HTTP no incluyen credenciales ni detalles internos de SQL.
+Consulta los [contratos API](../../docs/arquitectura/api-mvp-local.md), [modelos/SOLID](../../docs/arquitectura/modelo-y-modulos.md) y [pruebas](../../docs/arquitectura/verificacion-mvp-local.md).
 
 ## Variables
 
 | Variable | Uso |
 | --- | --- |
 | PORT | Puerto interno; 3000 por defecto |
-| DB_HOST, DB_NAME, DB_USER, DB_PASSWORD | Conexión, obligatorios |
-| DB_PORT | Puerto SQL; 1433 por defecto |
+| DB_HOST, DB_NAME, DB_USER, DB_PASSWORD | Conexión obligatoria |
+| DB_PORT | 1433 por defecto |
 | DB_ENCRYPT | TLS habilitado salvo valor `false` |
-| DB_TRUST_SERVER_CERTIFICATE | `true` solo para certificado local autofirmado; por defecto `false` |
-| DB_INITIALIZE | `true` crea la base local; prohibido con NODE_ENV=production |
-| DB_MIGRATE | `true` ejecuta migraciones al arrancar; por defecto deshabilitado |
+| DB_TRUST_SERVER_CERTIFICATE | `true` solo para certificado local autofirmado |
+| DB_INITIALIZE | Crea la base local; prohibido en producción |
+| DB_MIGRATE | Aplica migraciones al arrancar |
 | MIGRATIONS_DIR | En Docker: /workspace/migrations |
 | CORS_ORIGINS | Orígenes exactos separados por comas |
+| AUTH_MODE | Debe ser `local` en este MVP |
+| COOKIE_SECURE | `true` para cookie exclusivamente HTTPS; `false` en Compose local |
+| NODE_ENV | `development` local; el modo de autenticación actual rechaza `production` |
 
-`npm run dev` recarga el código. `npm run build` compila a `dist`; `npm start` ejecuta la compilación. `npm test` comprueba disponibilidad, errores, CORS y validación de configuración.
+Todas las escrituras API requieren `X-Requested-With: ReconstruyeHome`. Si hay `Origin`, debe estar autorizado. La sesión usa cookie HttpOnly, SameSite=Lax y caduca a las 12 horas. Las contraseñas se derivan con scrypt; solo se guarda el hash de los tokens opacos.
 
-El destino `production` del Dockerfile incluye solo dependencias de ejecución, código compilado y migraciones; corre como usuario no privilegiado. Antes de iniciar producción, ejecuta `npm run migrate` como paso separado de despliegue con una cuenta autorizada para DDL. La cuenta de la API no necesita permisos para crear bases ni modificar el esquema.
+## Comandos en apps/back
+
+- `npm run dev`: recarga del servidor.
+- `npm run build`: compilación TypeScript.
+- `npm test`: pruebas de negocio y contratos HTTP de cada API.
+- `npm run test:coverage`: cobertura de módulos ejecutados por esas pruebas.
+- `npm run dev:role -- correo@example.test admin`: asignación explícita local.
+- `npm run dev:role -- correo@example.test admin --revoke`: retirada y revocación de sesiones.
+
+En Docker, usa los comandos desde la raíz como `docker compose exec -T back npm test`. Los resultados de cobertura unitaria no incluyen los adaptadores SQL, que se verifican mediante integración real.
+
+El destino `production` del Dockerfile contiene dependencias de ejecución, compilación y migraciones, y usa usuario no privilegiado. Su construcción no habilita un lanzamiento público: primero debe implementarse autenticación con verificación de correo. Las migraciones de producción se ejecutarán por separado con una cuenta DDL y `npm run migrate`; la API usará permisos mínimos.

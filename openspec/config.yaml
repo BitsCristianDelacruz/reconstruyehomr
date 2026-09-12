@@ -1,0 +1,11 @@
+schema: spec-driven
+context: |
+  ReconstruyeHome: MVP local de ayuda no monetaria según SRS v0.1 en docs/requisitos.
+  Stack: Angular 21 LTS, Node 24, Express 5, TypeScript, SQL Server y Azure SQL.
+  Aplicar SOLID con puertos y adaptadores por capacidad; pruebas unitarias por API.
+  Implementar las APIs secuencialmente; probar cada capacidad antes de la siguiente.
+  SRS prevalece sobre mockup. Frontend móvil español, navegación de cuatro secciones.
+  sources/ y documentos Word originales son solo lectura. No desplegar en público.
+  Correo y contraseña aprobados para desarrollo; verificación de correo antes del lanzamiento.
+  Proveedor definitivo de PD-01 y políticas PD-02 a PD-07 pendientes.
+  Evidencias, validación de aliados y exportaciones deshabilitadas hasta resolver sus políticas.
